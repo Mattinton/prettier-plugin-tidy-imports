@@ -1,0 +1,10 @@
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+module.exports = {
+  preset: "ts-jest",
+  testEnvironment: "jest-bench/environment",
+  testEnvironmentOptions: {
+    testEnvironment: "node",
+  },
+  reporters: ["default", "jest-bench/reporter"],
+  testRegex: "(/__benchmarks__/.*|\\.bench)\\.(ts|tsx|js)$",
+};
