@@ -1,6 +1,6 @@
 {
   "name": "@mattinton/prettier-plugin-tidy-imports",
-  "version": "1.0.4",
+  "version": "0.0.0-development",
   "description": "A prettier plugin to tidy your imports",
   "source": "src/index.ts",
   "main": "dist/main.js",
@@ -14,7 +14,8 @@
     "build": "parcel build",
     "test": "jest",
     "test:bench": "jest --config jest-bench.config.js && mv benchmarks/result.txt benchmarks/result.json",
-    "test:profile": "node --inspect-brk node_modules/.bin/jest --runInBand --watch"
+    "test:profile": "node --inspect-brk node_modules/.bin/jest --runInBand --watch",
+    "semantic-release": "semantic-release"
   },
   "author": "",
   "license": "ISC",
@@ -32,6 +33,7 @@
     "jest-bench": "^27.3.1",
     "parcel": "latest",
     "prettier": "^2.4.1",
+    "semantic-release": "^18.0.1",
     "ts-jest": "^27.0.7",
     "typescript": "^4.5.2"
   },
@@ -44,5 +46,9 @@
   "peerDependencies": {
     "prettier": "2.x",
     "typescript": "4.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mattinton/prettier-plugin-tidy-imports.git"
   }
 }
