@@ -51,6 +51,7 @@ export function preprocess(code: string, options: ParserOptions) {
   let imports = getSortedImportDeclarations(sourceFile);
   if (!imports.length) return code;
 
+  // Remove top comments to avoid change by sorting
   const topCommentsRange = {
     pos: 0,
     end: Math.max(imports[0].getStart() - 1, 0),
@@ -60,6 +61,7 @@ export function preprocess(code: string, options: ParserOptions) {
     .substring(topCommentsRange.pos, topCommentsRange.end);
   sourceFile.removeText(topCommentsRange.pos, topCommentsRange.end);
 
+  // Typescript organize to remove unused imports
   sourceFile.organizeImports({}, {});
 
   imports = getSortedImportDeclarations(sourceFile);
