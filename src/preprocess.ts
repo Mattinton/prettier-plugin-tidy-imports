@@ -1,10 +1,7 @@
-import { clone } from "lodash";
 import naturalSort from "natural-sort";
 import path from "path";
 import { RequiredOptions } from "prettier";
 import {
-  CommentRange,
-  ImportDeclaration,
   ImportDeclarationStructure,
   OptionalKind,
   Project,
@@ -40,8 +37,6 @@ const project = new Project({
   skipFileDependencyResolution: true,
 });
 
-console.log(project.compilerOptions);
-
 const sorter = naturalSort();
 
 export function preprocess(code: string, options: ParserOptions) {
@@ -53,26 +48,30 @@ export function preprocess(code: string, options: ParserOptions) {
     }
   );
 
-  if (!sourceFile.getImportDeclarations().length) return code;
+  let imports = getSortedImportDeclarations(sourceFile);
+  if (!imports.length) return code;
 
-  const topCommentsRange = getSortedImportDeclarations(sourceFile)[0]
-    .getLeadingCommentRanges()
-    .reduce(
-      (acc, node) => {
-        if (node.getPos() < acc.pos) return { ...acc, pos: node.getPos() };
-        if (node.getEnd() > acc.end) return { ...acc, end: node.getEnd() };
-        return acc;
-      },
-      { pos: 0, end: 0 }
-    );
+  const topCommentsRange = imports[0].getLeadingCommentRanges().reduce(
+    (acc, node) => {
+      if (node.getPos() < acc.pos) return { ...acc, pos: node.getPos() };
+      if (node.getEnd() > acc.end) return { ...acc, end: node.getEnd() };
+      return acc;
+    },
+    { pos: 0, end: 0 }
+  );
+
+  const topCommentsText = sourceFile
+    .getFullText()
+    .substring(topCommentsRange.pos, topCommentsRange.end);
+  sourceFile.removeText(topCommentsRange.pos, topCommentsRange.end);
 
   sourceFile.organizeImports({}, {});
 
-  const imports = getSortedImportDeclarations(sourceFile);
+  imports = getSortedImportDeclarations(sourceFile);
   if (!imports.length) return code;
 
   const importsData = imports.map(
-    (x, i): OptionalKind<ImportDeclarationStructure> => {
+    (x): OptionalKind<ImportDeclarationStructure> => {
       const namedImports = x.getNamedImports();
       namedImports.sort((a, b) => {
         const aSort = a.getAliasNode()?.getText() ?? a.getName();
@@ -91,8 +90,11 @@ export function preprocess(code: string, options: ParserOptions) {
         moduleSpecifier: x.getModuleSpecifierValue(),
         leadingTrivia: x
           .getLeadingCommentRanges()
-          .filter((x) => x.getPos() > topCommentsRange.end)
-          .map((x) => x.getText()),
+          .map(
+            (x) =>
+              x.getText() +
+              (x.getKind() === ts.SyntaxKind.MultiLineCommentTrivia ? "\n" : "")
+          ),
         trailingTrivia: x.getTrailingCommentRanges().map((x) => x.getText()),
       };
     }
@@ -100,17 +102,13 @@ export function preprocess(code: string, options: ParserOptions) {
 
   const commentsToRemove = imports.reduce<{ pos: number; end: number }[]>(
     (acc, node) => {
-      const text = { text: node.getText(), pos: node.getPos() };
       return [
         ...acc,
-        ...node
-          .getLeadingCommentRanges()
-          .filter((x) => x.getPos() > topCommentsRange.end)
-          .map((x) => ({
-            text: x.getText(),
-            pos: x.getPos(),
-            end: x.getEnd(),
-          })),
+        ...node.getLeadingCommentRanges().map((x) => ({
+          text: x.getText(),
+          pos: x.getPos(),
+          end: x.getEnd(),
+        })),
       ];
     },
     []
@@ -161,10 +159,9 @@ export function preprocess(code: string, options: ParserOptions) {
       return [...acc, ...group];
     }, []);
 
-  sourceFile.insertImportDeclarations(
-    sourceFile.getLineAndColumnAtPos(topCommentsRange.end).line - 1,
-    finalImports
-  );
+  sourceFile.insertImportDeclarations(0, finalImports);
+
+  sourceFile.insertText(0, topCommentsText + "\n");
 
   return sourceFile.getFullText();
 }

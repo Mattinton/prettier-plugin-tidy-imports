@@ -1,17 +1,25 @@
 // @ts-nocheck
 
-// reactfire comment
+// test
+// testing
+
+// testing1
+
 import { AuthProvider, FirebaseAppProvider, useFirebaseApp } from "reactfire";
 import { AppProps } from "next/dist/shared/lib/router/router"; // test comment inline
 import React, { ReactNode } from "react";
 // test comment before
 import { getAuth } from "firebase/auth";
+/**
+ * multi line first test
+ */
 import "tailwindcss/tailwind.css";
 import Head from "next/document";
 // comment before layout
 import { getLayout } from "~components/pages/_app/layout";
-import { ErrorBoundary, FallbackProps } from "react-error-boundary"; // in line comment
-
+/**
+ * another multi line first test
+ */ import { ErrorBoundary, FallbackProps } from "react-error-boundary"; // in line comment
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
