@@ -51,7 +51,10 @@ export function preprocess(code: string, options: ParserOptions) {
   let imports = getSortedImportDeclarations(sourceFile);
   if (!imports.length) return code;
 
-  const topCommentsRange = { pos: 0, end: imports[0].getStart() - 1 };
+  const topCommentsRange = {
+    pos: 0,
+    end: Math.max(imports[0].getStart() - 1, 0),
+  };
   const topCommentsText = sourceFile
     .getFullText()
     .substring(topCommentsRange.pos, topCommentsRange.end);
