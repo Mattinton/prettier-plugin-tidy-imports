@@ -14,6 +14,7 @@ import { getAuth } from "firebase/auth";
  * multi line first test
  */
 import "tailwindcss/tailwind.css";
+import "focus-visible";
 import Head from "next/document";
 // comment before layout
 import { getLayout } from "~components/pages/_app/layout";

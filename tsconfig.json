@@ -4,7 +4,6 @@
     "target": "es5",
     "declaration": true,
     "outDir": "./dist",
-    "baseUrl": "./src",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
