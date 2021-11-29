@@ -28,6 +28,8 @@ describe("preprocess", () => {
       getImportDeclarationStructure
     );
 
+    console.log(code);
+
     expect(imports.map((x) => x.moduleSpecifier)).toStrictEqual([
       "tailwindcss/tailwind.css",
       "focus-visible",

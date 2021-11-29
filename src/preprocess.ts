@@ -103,8 +103,6 @@ export function preprocess(code: string, options: ParserOptions) {
   );
 
   const finalImports = groupedImports.reduce((acc, group) => {
-    const [_namespace, _thirdParty, _relative] = groupedImports;
-
     group.sort((a, b) => {
       const aName = a.moduleSpecifier;
       const bName = b.moduleSpecifier;
