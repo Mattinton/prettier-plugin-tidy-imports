@@ -48,7 +48,7 @@ export function getTidyImportsProject() {
   return new Project({
     resolutionHost: (_host, _options) => ({
       resolveModuleNames: (moduleNames) =>
-        moduleNames.map((x) => ({ resolvedFileName: x + ".ts" })),
+        moduleNames.map((x) => ({ resolvedFileName: (x ?? "fix") + ".ts" })),
       getResolvedModuleWithFailedLookupLocationsFromCache: (moduleName) => ({
         resolvedModule: {
           resolvedFileName: moduleName,
@@ -57,7 +57,7 @@ export function getTidyImportsProject() {
       }),
       resolveTypeReferenceDirectives: (typeDirectiveNames) =>
         typeDirectiveNames.map((x) => ({
-          resolvedFileName: x + ".d.ts",
+          resolvedFileName: (x ?? "fix") + ".d.ts",
           primary: false,
         })),
     }),

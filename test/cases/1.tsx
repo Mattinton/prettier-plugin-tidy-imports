@@ -3,6 +3,8 @@
 // test
 // testing
 
+const test = "test";
+
 // testing1
 
 import { AuthProvider, FirebaseAppProvider, useFirebaseApp } from "reactfire";
@@ -15,6 +17,9 @@ import { getAuth } from "firebase/auth";
  */
 import "tailwindcss/tailwind.css";
 import "focus-visible";
+
+const testing1 = "test";
+
 import Head from "next/document";
 // comment before layout
 import { getLayout } from "~components/pages/_app/layout";

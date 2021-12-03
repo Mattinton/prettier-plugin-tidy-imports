@@ -1,6 +1,7 @@
+import { notStrictEqual } from "assert";
 import naturalSort from "natural-sort";
 import path from "path";
-import { ImportDeclarationStructure, OptionalKind } from "ts-morph";
+import { ImportDeclarationStructure, OptionalKind, ts } from "ts-morph";
 import {
   CommentRangeStructure,
   getCommentStructure,
@@ -17,86 +18,69 @@ const project = getTidyImportsProject();
 const sorter = naturalSort();
 
 export function preprocess(code: string, options: ParserOptions) {
-  const sourceFile = project.createSourceFile(
-    `fix${path.parse(options.filepath).ext}`,
+  const originalFile = project.createSourceFile(
+    `original${path.parse(options.filepath).ext}`,
     code,
     {
       overwrite: true,
     }
   );
 
-  let imports = getImportDeclarations(sourceFile);
+  let imports = getImportDeclarations(originalFile);
   if (!imports.length) return code;
 
-  // Remove top comments to avoid change by sorting
-  const topCommentsRange: CommentRangeStructure = {
+  // Remove anything above the first import so we don't process them
+  const aboveImportsRange: CommentRangeStructure = {
     pos: 0,
     end: Math.max(imports[0].getStart() - 1, 0),
   };
-  const topCommentsText = sourceFile
+  const aboveImportsText = originalFile
     .getFullText()
-    .substring(topCommentsRange.pos, topCommentsRange.end);
-  sourceFile.removeText(topCommentsRange.pos, topCommentsRange.end);
+    .substring(aboveImportsRange.pos, aboveImportsRange.end);
+
+  const processFile = project.createSourceFile(
+    `process${path.parse(options.filepath).ext}`,
+    originalFile.getFullText().substring(aboveImportsRange.end + 1),
+    {
+      overwrite: true,
+    }
+  );
 
   // Remove side effects to prevent them being sorted by typescript sorter
-  imports = getImportDeclarations(sourceFile);
-  let sideEffectImports = imports.filter((node) => isSideEffectImport(node));
-  const sideEffectImportStructures = sideEffectImports.map(
-    getImportDeclarationStructure
-  );
-  sideEffectImports
-    .reduce((acc: CommentRangeStructure[], node) => {
-      return [
-        ...acc,
-        ...node.getLeadingCommentRanges().map(getCommentStructure),
-      ];
-    }, [])
-    .reverse()
-    .forEach((comment) => sourceFile.removeText(comment.pos, comment.end));
+  imports = getImportDeclarations(processFile);
+  const sideEffectImportStructures = imports
+    .filter((node) => isSideEffectImport(node))
+    .map(getImportDeclarationStructure);
 
-  imports = getImportDeclarations(sourceFile);
-  sideEffectImports = imports.filter((node) => isSideEffectImport(node));
-  sideEffectImports.forEach((node) => node.remove());
+  processFile.organizeImports();
 
-  // Typescript organize to remove unused imports
-  sourceFile.organizeImports({}, {});
-
-  imports = getImportDeclarations(sourceFile);
+  imports = getImportDeclarations(processFile);
   if (!imports.length) return code;
 
   const importStructures = imports.map((node) => {
-    node.getNamedImports().sort((a, b) => {
-      const aSort = a.getAliasNode()?.getText() ?? a.getName();
-      const bSort = b.getAliasNode()?.getText() ?? b.getName();
+    const struct = getImportDeclarationStructure(node);
+
+    struct.namedImports.sort((a, b) => {
+      const aSort = a.alias ?? a.name;
+      const bSort = b.alias ?? b.name;
       return sorter(aSort, bSort);
     });
 
-    return getImportDeclarationStructure(node);
+    return struct;
   });
-
-  imports
-    .reduce((acc: CommentRangeStructure[], node) => {
-      return [
-        ...acc,
-        ...node.getLeadingCommentRanges().map(getCommentStructure),
-      ];
-    }, [])
-    .reverse()
-    .forEach((comment) => {
-      sourceFile.removeText(comment.pos, comment.end);
-    });
-  sourceFile.getImportDeclarations().forEach((node) => node.remove());
 
   const groupedImports = importStructures.reduce(
     (acc: OptionalKind<ImportDeclarationStructure>[][], node) => {
       const [namespace, thirdParty, relative] = acc;
+
       if (!!node.namespaceImport) {
         namespace.push(node);
       } else if (!!node.moduleSpecifier.match(/^[./]+/)) {
         relative.push(node);
-      } else {
+      } else if (!!node.defaultImport || !!node.namedImports.length) {
         thirdParty.push(node);
       }
+
       return acc;
     },
     [[], [], []]
@@ -121,10 +105,20 @@ export function preprocess(code: string, options: ParserOptions) {
     return [...acc, ...group];
   }, []);
 
+  const fixedFile = project.createSourceFile(
+    `fixed${path.parse(options.filepath).ext}`,
+    processFile
+      .getFullText()
+      .substring(imports[imports.length - 1].getTrailingTriviaEnd() + 1),
+    {
+      overwrite: true,
+    }
+  );
+
   finalImports.unshift(...sideEffectImportStructures);
-  sourceFile.insertImportDeclarations(0, finalImports);
+  fixedFile.insertImportDeclarations(0, finalImports);
 
-  sourceFile.insertText(0, topCommentsText + "\n");
+  fixedFile.insertText(0, aboveImportsText + "\n");
 
-  return sourceFile.getFullText();
+  return fixedFile.getFullText();
 }
