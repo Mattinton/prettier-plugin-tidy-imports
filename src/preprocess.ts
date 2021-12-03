@@ -40,7 +40,7 @@ export function preprocess(code: string, options: ParserOptions) {
 
   const processFile = project.createSourceFile(
     `process${path.parse(options.filepath).ext}`,
-    originalFile.getFullText().substring(aboveImportsRange.end + 1),
+    originalFile.getFullText().substring(aboveImportsRange.end),
     {
       overwrite: true,
     }
