@@ -18,6 +18,8 @@ import { getAuth } from "firebase/auth";
 import "tailwindcss/tailwind.css";
 import "focus-visible";
 
+import "./side-effect-local";
+
 const testing1 = "test";
 
 import Head from "next/document";

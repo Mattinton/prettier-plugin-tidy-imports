@@ -75,18 +75,26 @@ export function preprocess(code: string, options: ParserOptions) {
     (acc: OptionalKind<ImportDeclarationStructure>[][], node) => {
       const [namespace, thirdParty, relative] = acc;
 
+      console.log(!!node.defaultImport || !!node.namedImports.length);
+
       if (!!node.namespaceImport) {
         namespace.push(node);
-      } else if (!!node.moduleSpecifier.match(/^[./]+/)) {
-        relative.push(node);
       } else if (!!node.defaultImport || !!node.namedImports.length) {
-        thirdParty.push(node);
+        if (!!node.moduleSpecifier.match(/^[./]+/)) {
+          relative.push(node);
+        } else {
+          thirdParty.push(node);
+        }
       }
+
+      // if no match then it was a side effect import
 
       return acc;
     },
     [[], [], []]
   );
+
+  console.log(groupedImports);
 
   const finalImports = groupedImports.reduce((acc, group) => {
     group.sort((a, b) => {
@@ -106,6 +114,8 @@ export function preprocess(code: string, options: ParserOptions) {
 
     return [...acc, ...group];
   }, []);
+
+  console.log(finalImports);
 
   const fixedFile = project.createSourceFile(
     `fixed${fileExtension}`,

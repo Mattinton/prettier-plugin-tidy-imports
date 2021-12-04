@@ -1,4 +1,3 @@
-import prettier from "prettier";
 import fs from "fs";
 import path from "path";
 import {
@@ -31,6 +30,7 @@ describe("preprocess", () => {
     expect(imports.map((x) => x.moduleSpecifier)).toStrictEqual([
       "tailwindcss/tailwind.css",
       "focus-visible",
+      "./side-effect-local",
       "next/document",
       "react",
       "firebase/auth",
