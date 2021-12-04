@@ -14,7 +14,7 @@ A prettier plugin that, sorts, combines, and removes unsused imports from your J
 
 ## Sorting
 
-Imports are sorted into 4 distinct groups `Side Efffect`, `Namespace`, `Third Party`, and `Relative`. Every group is then sorted alphabetically except `Side Effect` imports where their ordering matters. Inside `Third Party` and `Relative` groups, `default` imports are placed at the top, and named imports (imports inside `{}`) are also ordered.
+Imports are sorted into 4 distinct groups `Side Efffect`, `Namespace`, `Third Party`, and `Relative`. Every group is then sorted alphabetically except side effect imports as their order matters. Inside third party and relative groups, default imports are placed at the top, and named imports (imports inside `{}`) are also ordered.
 
 ### Definitions
 
@@ -25,7 +25,7 @@ Imports are sorted into 4 distinct groups `Side Efffect`, `Namespace`, `Third Pa
 
 ### Typescript Path Aliases
 
-This package doesn't know the difference between `Third Party` imports, and aliases defined in the `tsconfig.json` [paths](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) config. If you want to make sure these are grouped separately, you should prefix your aliases with a symbol not used in third party modules such as the tilde (`~`).
+This package doesn't know the difference between third party imports, and aliases defined in your `tsconfig.json` [paths](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) config. If you want to make sure these are grouped separately, you should prefix your aliases with a symbol not used in third party modules such as the tilde (`~`).
 
 ## Installation
 
