@@ -18,8 +18,10 @@ const project = getTidyImportsProject();
 const sorter = naturalSort();
 
 export function preprocess(code: string, options: ParserOptions) {
+  const fileExtension = path.parse(options.filepath).ext.replace("j", "t");
+
   const originalFile = project.createSourceFile(
-    `original${path.parse(options.filepath).ext}`,
+    `original${fileExtension}`,
     code,
     {
       overwrite: true,
@@ -39,7 +41,7 @@ export function preprocess(code: string, options: ParserOptions) {
     .substring(aboveImportsRange.pos, aboveImportsRange.end);
 
   const processFile = project.createSourceFile(
-    `process${path.parse(options.filepath).ext}`,
+    `process${fileExtension}`,
     originalFile.getFullText().substring(aboveImportsRange.end),
     {
       overwrite: true,
@@ -106,7 +108,7 @@ export function preprocess(code: string, options: ParserOptions) {
   }, []);
 
   const fixedFile = project.createSourceFile(
-    `fixed${path.parse(options.filepath).ext}`,
+    `fixed${fileExtension}`,
     processFile
       .getFullText()
       .substring(imports[imports.length - 1].getTrailingTriviaEnd() + 1),
