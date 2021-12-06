@@ -75,8 +75,6 @@ export function preprocess(code: string, options: ParserOptions) {
     (acc: OptionalKind<ImportDeclarationStructure>[][], node) => {
       const [namespace, thirdParty, relative] = acc;
 
-      console.log(!!node.defaultImport || !!node.namedImports.length);
-
       if (!!node.namespaceImport) {
         namespace.push(node);
       } else if (!!node.defaultImport || !!node.namedImports.length) {
@@ -93,8 +91,6 @@ export function preprocess(code: string, options: ParserOptions) {
     },
     [[], [], []]
   );
-
-  console.log(groupedImports);
 
   const finalImports = groupedImports.reduce((acc, group) => {
     group.sort((a, b) => {
@@ -114,8 +110,6 @@ export function preprocess(code: string, options: ParserOptions) {
 
     return [...acc, ...group];
   }, []);
-
-  console.log(finalImports);
 
   const fixedFile = project.createSourceFile(
     `fixed${fileExtension}`,
