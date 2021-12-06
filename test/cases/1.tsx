@@ -12,6 +12,9 @@ import { AppProps } from "next/dist/shared/lib/router/router"; // test comment i
 import React, { ReactNode } from "react";
 // test comment before
 import { getAuth } from "firebase/auth";
+
+import path from 'path';
+
 /**
  * multi line first test
  */

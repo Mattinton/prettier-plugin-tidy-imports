@@ -13,6 +13,12 @@ describe("preprocess", () => {
     const filePath = path.join(__dirname, "../test/cases/1.tsx");
     const code = preprocess(fs.readFileSync(filePath, "utf-8"), {
       filepath: "test/cases/1.tsx",
+      arrowParens: "always",
+      printWidth: 120,
+      singleQuote: true,
+      trailingComma: "all",
+      semi: true,
+      tabWidth: 4
     } as ParserOptions);
 
     const project = getTidyImportsProject();

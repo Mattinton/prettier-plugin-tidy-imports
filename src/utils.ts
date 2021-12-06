@@ -1,3 +1,4 @@
+import path from "path";
 import { RequiredOptions } from "prettier";
 import {
   CommentRange,
@@ -6,7 +7,6 @@ import {
   SourceFile,
   ts,
 } from "ts-morph";
-import { tsconfigResolverSync } from "tsconfig-resolver";
 
 export type ParserOptions = RequiredOptions;
 
@@ -15,36 +15,7 @@ export type CommentRangeStructure = {
   end: number;
 };
 
-const result = tsconfigResolverSync();
-if (!result || !result.exists) throw new Error("Could not find tsconfig.json");
-
-export const tidyImportsProject = new Project({
-  resolutionHost: (_host, _options) => ({
-    resolveModuleNames: (moduleNames) =>
-      moduleNames.map((x) => ({ resolvedFileName: x + ".ts" })),
-    getResolvedModuleWithFailedLookupLocationsFromCache: (moduleName) => ({
-      resolvedModule: {
-        resolvedFileName: moduleName,
-        extension: ts.Extension.Ts,
-      },
-    }),
-    resolveTypeReferenceDirectives: (typeDirectiveNames) =>
-      typeDirectiveNames.map((x) => ({
-        resolvedFileName: x + ".d.ts",
-        primary: false,
-      })),
-  }),
-  skipAddingFilesFromTsConfig: true,
-  skipLoadingLibFiles: true,
-  tsConfigFilePath: result.path,
-  skipFileDependencyResolution: true,
-});
-
 export function getTidyImportsProject() {
-  const result = tsconfigResolverSync();
-  if (!result || !result.exists)
-    throw new Error("Could not find tsconfig.json");
-
   return new Project({
     resolutionHost: (_host, _options) => ({
       resolveModuleNames: (moduleNames) =>
@@ -63,7 +34,6 @@ export function getTidyImportsProject() {
     }),
     skipAddingFilesFromTsConfig: true,
     skipLoadingLibFiles: true,
-    tsConfigFilePath: result.path,
     skipFileDependencyResolution: true,
   });
 }

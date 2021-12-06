@@ -40,8 +40,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "natural-sort": "^1.0.0",
-    "ts-morph": "^13.0.2",
-    "tsconfig-resolver": "^3.0.1"
+    "ts-morph": "^13.0.2"
   },
   "peerDependencies": {
     "prettier": "2.x",
