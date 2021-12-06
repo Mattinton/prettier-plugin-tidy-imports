@@ -50,5 +50,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Mattinton/prettier-plugin-tidy-imports.git"
-  }
+  },
+  "keywords": [
+    "prettier",
+    "typescript",
+    "imports",
+    "plugin",
+    "sort",
+    "unused",
+    "prettier-plugin",
+    "tidy-imports"
+  ]
 }

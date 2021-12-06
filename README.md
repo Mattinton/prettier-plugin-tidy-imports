@@ -41,4 +41,4 @@ yarn add -D @mattinton/prettier-plugin-tidy-imports
 
 ## Usage Warning
 
-This plugin breaks Prettier's rule of only printing code as plugin actually transforms your imports. If this concerns you please don't use this package.
+This plugin breaks Prettier's rule of only printing code as this plugin transforms your code by removing/sorting imports. If this concerns you please don't use this package.
