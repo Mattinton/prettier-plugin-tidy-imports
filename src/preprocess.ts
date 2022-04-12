@@ -61,6 +61,9 @@ export function preprocess(code: string, options: ParserOptions) {
   );
 
   processFile.organizeImports();
+  imports = getImportDeclarations(processFile);
+
+  console.log(imports);
 
   const importStructures = imports.map((node) => {
     const struct = getImportDeclarationStructure(node);
@@ -118,7 +121,9 @@ export function preprocess(code: string, options: ParserOptions) {
     `fixed${fileExtension}`,
     processFile
       .getFullText()
-      .substring(imports[imports.length - 1].getTrailingTriviaEnd() + 1),
+      .substring(
+        (imports[imports.length - 1]?.getTrailingTriviaEnd() ?? 0) + 1
+      ),
     {
       overwrite: true,
     }
