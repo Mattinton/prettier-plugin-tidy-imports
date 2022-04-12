@@ -62,9 +62,6 @@ export function preprocess(code: string, options: ParserOptions) {
 
   processFile.organizeImports();
 
-  imports = getImportDeclarations(processFile);
-  if (!imports.length) return processFile.getFullText();
-
   const importStructures = imports.map((node) => {
     const struct = getImportDeclarationStructure(node);
 
