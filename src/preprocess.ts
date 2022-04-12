@@ -50,14 +50,20 @@ export function preprocess(code: string, options: ParserOptions) {
 
   // Remove side effects to prevent them being sorted by typescript sorter
   imports = getImportDeclarations(processFile);
-  const sideEffectImportStructures = imports
-    .filter((node) => isSideEffectImport(node))
-    .map(getImportDeclarationStructure);
+  const sideEffectImportStructures = imports.reduce(
+    (acc, importDeclaration) => {
+      if (isSideEffectImport(importDeclaration)) {
+        acc.push(getImportDeclarationStructure(importDeclaration));
+      }
+      return acc;
+    },
+    [] as OptionalKind<ImportDeclarationStructure>[]
+  );
 
   processFile.organizeImports();
 
   imports = getImportDeclarations(processFile);
-  if (!imports.length) return code;
+  if (!imports.length) return processFile.getFullText();
 
   const importStructures = imports.map((node) => {
     const struct = getImportDeclarationStructure(node);
