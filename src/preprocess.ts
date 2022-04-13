@@ -31,14 +31,11 @@ export function preprocess(code: string, options: ParserOptions) {
   // Remove anything above the first import so we don't process them
   const aboveImportsRange: CommentRangeStructure = {
     pos: 0,
-    end: Math.max(imports[0].getPos(), 0),
+    end: Math.max(imports[0].getStart(), 0),
   };
   const aboveImportsText = originalFile
     .getFullText()
-    .substring(aboveImportsRange.pos, aboveImportsRange.end)
-    .trim();
-
-  const firstImport = getImportDeclarationStructure(imports[0]);
+    .substring(aboveImportsRange.pos, aboveImportsRange.end);
 
   const processFile = project.createSourceFile(
     `process${fileExtension}`,
@@ -67,12 +64,6 @@ export function preprocess(code: string, options: ParserOptions) {
     }
     return acc;
   }, [] as OptionalKind<ImportDeclarationStructure>[]);
-
-  const matchingFirstImport = importStructures.find(
-    (i) => i.moduleSpecifier === firstImport.moduleSpecifier
-  );
-  if (matchingFirstImport)
-    matchingFirstImport.leadingTrivia = firstImport.leadingTrivia;
 
   const groupedImports = importStructures.reduce(
     (acc: OptionalKind<ImportDeclarationStructure>[][], node) => {
@@ -128,7 +119,7 @@ export function preprocess(code: string, options: ParserOptions) {
   finalImports.unshift(...sideEffectImportStructures);
   fixedFile.insertImportDeclarations(0, finalImports);
 
-  fixedFile.insertText(0, aboveImportsText + "\n\n");
+  fixedFile.insertText(0, aboveImportsText);
 
   return fixedFile.getFullText();
 }
