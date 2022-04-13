@@ -4,16 +4,19 @@
 // testing
 
 const test = "test";
-
+/**
+ * Also test
+ */
 // testing1
-
 import { AuthProvider, FirebaseAppProvider, useFirebaseApp } from "reactfire";
-import { AppProps } from "next/dist/shared/lib/router/router"; // test comment inline
+import type { Test } from "reactfire";
+import { type AppProps } from "next/dist/shared/lib/router/router"; // test comment inline
 import React, { ReactNode } from "react";
 // test comment before
 import { getAuth } from "firebase/auth";
 
-import path from 'path';
+// path test unused!!
+import path from "path";
 
 /**
  * multi line first test
@@ -22,15 +25,14 @@ import "tailwindcss/tailwind.css";
 import "focus-visible";
 
 import "./side-effect-local";
-
 const testing1 = "test";
-
 import Head from "next/document";
 // comment before layout
 import { getLayout } from "~components/pages/_app/layout";
 /**
  * another multi line first test
  */ import { ErrorBoundary, FallbackProps } from "react-error-boundary"; // in line comment
+// comment after layout
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
@@ -55,7 +57,7 @@ function Providers({
 }
 
 function App({ Component, pageProps }: AppProps) {
-  const Layout = getLayout(Component);
+  const Layout: Test = getLayout(Component);
 
   function ClientErrorFallback(_props: FallbackProps) {
     return <Layout>Oops! Something went wrong.</Layout>;

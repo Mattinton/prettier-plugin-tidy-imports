@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import {
-  getImportDeclarations,
   getImportDeclarationStructure,
   getTidyImportsProject,
   ParserOptions,
@@ -18,7 +17,7 @@ describe("preprocess", () => {
       singleQuote: true,
       trailingComma: "all",
       semi: true,
-      tabWidth: 4
+      tabWidth: 4,
     } as ParserOptions);
 
     const project = getTidyImportsProject();
@@ -27,9 +26,9 @@ describe("preprocess", () => {
       code
     );
 
-    const imports = getImportDeclarations(sourceFile).map(
-      getImportDeclarationStructure
-    );
+    const imports = sourceFile
+      .getImportDeclarations()
+      .map(getImportDeclarationStructure);
 
     console.log(code);
 
@@ -42,6 +41,7 @@ describe("preprocess", () => {
       "firebase/auth",
       "next/dist/shared/lib/router/router",
       "react-error-boundary",
+      "reactfire",
       "reactfire",
       "~components/pages/_app/layout",
     ]);

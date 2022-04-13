@@ -1,10 +1,11 @@
-import path from "path";
+import naturalSort from "natural-sort";
 import { RequiredOptions } from "prettier";
 import {
   CommentRange,
   ImportDeclaration,
+  ImportDeclarationStructure,
+  OptionalKind,
   Project,
-  SourceFile,
   ts,
 } from "ts-morph";
 
@@ -14,6 +15,8 @@ export type CommentRangeStructure = {
   pos: number;
   end: number;
 };
+
+export const sorter = naturalSort();
 
 export function getTidyImportsProject() {
   return new Project({
@@ -50,21 +53,28 @@ export function getFilePathDepth(path: string) {
   return path.match(/^[./]+/g)?.[0]?.length ?? 0;
 }
 
-export function getImportDeclarations(sourceFile: SourceFile) {
-  return sourceFile
-    .getImportDeclarations()
-    ?.sort((a, b) => a.getPos() - b.getPos());
+export function sortImportDeclarationsByPos(
+  a: ImportDeclaration,
+  b: ImportDeclaration
+) {
+  return a.getPos() - b.getPos();
 }
 
-export function getImportDeclarationStructure(node: ImportDeclaration) {
+export function getImportDeclarationStructure(
+  node: ImportDeclaration
+): OptionalKind<ImportDeclarationStructure> {
   return {
     isTypeOnly: node.isTypeOnly(),
     defaultImport: node.getDefaultImport()?.getText(),
     namespaceImport: node.getNamespaceImport()?.getText(),
-    namedImports: node.getNamedImports()?.map((y) => ({
-      name: y.getName(),
-      alias: y.getAliasNode()?.getText(),
-    })),
+    namedImports: node
+      .getNamedImports()
+      ?.map((y) => ({
+        name: y.getName(),
+        alias: y.getAliasNode()?.getText(),
+        isTypeOnly: y.isTypeOnly(),
+      }))
+      .sort((a, b) => sorter(a.name, b.name)),
     moduleSpecifier: node.getModuleSpecifierValue(),
     leadingTrivia: node
       .getLeadingCommentRanges()

@@ -1,21 +1,17 @@
-import { notStrictEqual } from "assert";
-import naturalSort from "natural-sort";
 import path from "path";
-import { ImportDeclarationStructure, OptionalKind, ts } from "ts-morph";
+import type { ImportDeclarationStructure, OptionalKind } from "ts-morph";
 import {
   CommentRangeStructure,
-  getCommentStructure,
   getFilePathDepth,
-  getImportDeclarations,
   getImportDeclarationStructure,
   ParserOptions,
   isSideEffectImport,
   getTidyImportsProject,
+  sortImportDeclarationsByPos,
+  sorter,
 } from "./utils";
 
 const project = getTidyImportsProject();
-
-const sorter = naturalSort();
 
 export function preprocess(code: string, options: ParserOptions) {
   const fileExtension = path.parse(options.filepath).ext.replace("j", "t");
@@ -28,28 +24,31 @@ export function preprocess(code: string, options: ParserOptions) {
     }
   );
 
-  let imports = getImportDeclarations(originalFile);
+  let imports = originalFile.getImportDeclarations();
   if (!imports.length) return code;
+  imports.sort(sortImportDeclarationsByPos);
 
   // Remove anything above the first import so we don't process them
   const aboveImportsRange: CommentRangeStructure = {
     pos: 0,
-    end: Math.max(imports[0].getStart() - 1, 0),
+    end: Math.max(imports[0].getPos(), 0),
   };
   const aboveImportsText = originalFile
     .getFullText()
-    .substring(aboveImportsRange.pos, aboveImportsRange.end);
+    .substring(aboveImportsRange.pos, aboveImportsRange.end)
+    .trim();
+
+  const firstImport = getImportDeclarationStructure(imports[0]);
 
   const processFile = project.createSourceFile(
     `process${fileExtension}`,
-    originalFile.getFullText().substring(aboveImportsRange.end),
+    originalFile.getFullText().substring(aboveImportsRange.end).trimStart(),
     {
       overwrite: true,
     }
   );
 
-  // Remove side effects to prevent them being sorted by typescript sorter
-  imports = getImportDeclarations(processFile);
+  imports = processFile.getImportDeclarations();
   const sideEffectImportStructures = imports.reduce(
     (acc, importDeclaration) => {
       if (isSideEffectImport(importDeclaration)) {
@@ -59,21 +58,21 @@ export function preprocess(code: string, options: ParserOptions) {
     },
     [] as OptionalKind<ImportDeclarationStructure>[]
   );
-
   processFile.organizeImports();
-  imports = getImportDeclarations(processFile);
 
-  const importStructures = imports.map((node) => {
-    const struct = getImportDeclarationStructure(node);
+  imports = processFile.getImportDeclarations();
+  const importStructures = imports.reduce((acc, importDeclaration) => {
+    if (!isSideEffectImport(importDeclaration)) {
+      acc.push(getImportDeclarationStructure(importDeclaration));
+    }
+    return acc;
+  }, [] as OptionalKind<ImportDeclarationStructure>[]);
 
-    struct.namedImports.sort((a, b) => {
-      const aSort = a.alias ?? a.name;
-      const bSort = b.alias ?? b.name;
-      return sorter(aSort, bSort);
-    });
-
-    return struct;
-  });
+  const matchingFirstImport = importStructures.find(
+    (i) => i.moduleSpecifier === firstImport.moduleSpecifier
+  );
+  if (matchingFirstImport)
+    matchingFirstImport.leadingTrivia = firstImport.leadingTrivia;
 
   const groupedImports = importStructures.reduce(
     (acc: OptionalKind<ImportDeclarationStructure>[][], node) => {
@@ -81,7 +80,7 @@ export function preprocess(code: string, options: ParserOptions) {
 
       if (!!node.namespaceImport) {
         namespace.push(node);
-      } else if (!!node.defaultImport || !!node.namedImports.length) {
+      } else if (!!node.defaultImport || !!node.namedImports?.length) {
         if (!!node.moduleSpecifier.match(/^[./]+/)) {
           relative.push(node);
         } else {
@@ -90,7 +89,6 @@ export function preprocess(code: string, options: ParserOptions) {
       }
 
       // if no match then it was a side effect import
-
       return acc;
     },
     [[], [], []]
@@ -117,11 +115,11 @@ export function preprocess(code: string, options: ParserOptions) {
 
   const fixedFile = project.createSourceFile(
     `fixed${fileExtension}`,
-    processFile
-      .getFullText()
-      .substring(
-        (imports[imports.length - 1]?.getTrailingTriviaEnd() ?? 0) + 1
-      ),
+    "\n\n" +
+      processFile
+        .getFullText()
+        .substring(imports[imports.length - 1]?.getTrailingTriviaEnd() ?? 0)
+        .trimStart(),
     {
       overwrite: true,
     }
@@ -130,7 +128,7 @@ export function preprocess(code: string, options: ParserOptions) {
   finalImports.unshift(...sideEffectImportStructures);
   fixedFile.insertImportDeclarations(0, finalImports);
 
-  fixedFile.insertText(0, aboveImportsText + "\n");
+  fixedFile.insertText(0, aboveImportsText + "\n\n");
 
   return fixedFile.getFullText();
 }
