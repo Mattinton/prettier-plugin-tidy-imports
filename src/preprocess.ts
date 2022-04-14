@@ -14,7 +14,9 @@ import {
 const project = getTidyImportsProject();
 
 export function preprocess(code: string, options: ParserOptions) {
-  const fileExtension = path.parse(options.filepath).ext.replace("j", "t");
+  const fileExtension = path
+    .parse(options.filepath ?? "file.tsx")
+    .ext.replace("j", "t");
 
   const originalFile = project.createSourceFile(
     `original${fileExtension}`,
